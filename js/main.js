@@ -61,7 +61,7 @@
     document.documentElement.classList.remove('nav-probe');
     let look = 'light';
     for (const el of stack) {
-      if (nav.contains(el) || el.classList.contains('ab-switch') || !visible(el)) continue;
+      if (nav.contains(el) || el.closest('.ab-switch, .preloader') || !visible(el)) continue;
       const l = navLook(el);
       if (l) { look = l; break; }
     }
@@ -92,8 +92,20 @@
     gsap.ticker.add((t) => lenis.raf(t * 1000));
     gsap.ticker.lagSmoothing(0);
   }
-  const scrollToEl = (el) => {
-    if (!el) return;
+  const scrollToEl = (el, instant) => {
+    if (el == null) return;
+    // the hero is sticky, so its live position is no guide: it always starts at 0
+    if (el.id === 'top') el = 0;
+    // a number is an exact scroll position (a point inside a pinned timeline)
+    if (typeof el === 'number') {
+      if (lenis) lenis.scrollTo(el, instant ? { immediate: true, force: true } : { duration: 1.6 });
+      else window.scrollTo({ top: el, behavior: instant || reduceMotion.matches ? 'auto' : 'smooth' });
+      return;
+    }
+    // pinned sections start where their pin starts, not under the bar
+    const pin = ScrollTrigger.getAll().find((st) => st.pin === el);
+    if (pin) return scrollToEl(pin.start, instant);
+    if (instant) return scrollToEl(el.getBoundingClientRect().top + window.scrollY, true);
     if (lenis) lenis.scrollTo(el, { offset: -70, duration: 1.6 });
     else el.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth' });
   };
@@ -113,9 +125,65 @@
     started = true;
     requestAnimationFrame(() => body.classList.add('is-loaded'));
   };
-  if (video.readyState >= 2) start();
-  else video.addEventListener('loadeddata', start, { once: true });
-  setTimeout(start, 1400); // never hold the copy hostage to a slow video
+
+  /* ---------- Preloader ----------
+     Covers the first load (at least LOADER_MIN so one build of the mark plays)
+     and every jump from the menu: it fades in, the page jumps underneath while
+     it is covered, the scrubbed timelines catch up, then it fades out. */
+  const loader = document.getElementById('preloader');
+  const LOADER_MIN = 1800;
+  const LOADER_FADE = 700;
+  const SETTLE = 1200; // scrub: 1 needs about a second to catch up after a jump
+  const hideLoader = () => {
+    loader.classList.add('is-done');
+    loader.setAttribute('aria-hidden', 'true');
+  };
+  const showLoader = () => {
+    // a fresh copy of the mark starts the build from the first frame
+    const svg = loader.querySelector('svg');
+    svg.replaceWith(svg.cloneNode(true));
+    loader.removeAttribute('aria-hidden');
+    loader.classList.remove('is-done');
+  };
+  const viaLoader = (move) => {
+    showLoader();
+    const shown = performance.now();
+    setTimeout(() => {
+      move();
+      setTimeout(hideLoader, Math.max(SETTLE, LOADER_MIN - (performance.now() - shown)));
+    }, LOADER_FADE);
+  };
+
+  const pageStart = performance.now();
+  let loaderGone = false;
+  const firstReveal = () => {
+    if (loaderGone) return;
+    loaderGone = true;
+    setTimeout(() => {
+      hideLoader();
+      start();
+    }, Math.max(0, LOADER_MIN - (performance.now() - pageStart)));
+  };
+  if (document.readyState === 'complete') firstReveal();
+  else window.addEventListener('load', firstReveal, { once: true });
+  setTimeout(firstReveal, 8000); // never hold the page hostage to a slow asset
+
+  // navy or ivory, compared with the switch at the bottom right
+  const loaderButtons = [...document.querySelectorAll('[data-loader]')];
+  const setLoaderLook = (look) => {
+    loader.classList.toggle('preloader--ivory', look === 'ivory');
+    loaderButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.loader === look)));
+    try { localStorage.setItem('mjrLoader', look); } catch (e) { /* storage unavailable */ }
+  };
+  loaderButtons.forEach((b) => b.addEventListener('click', () => {
+    setLoaderLook(b.dataset.loader);
+    // preview it over the page
+    showLoader();
+    setTimeout(hideLoader, 2400);
+  }));
+  let savedLoader = 'navy';
+  try { savedLoader = localStorage.getItem('mjrLoader') || 'navy'; } catch (e) { /* storage unavailable */ }
+  setLoaderLook(savedLoader);
 
   /* ---------- Ink bleed (Cartier-style scroll transition) ----------
      Ivory blots open from staggered seeds, grow and merge until the frame
@@ -267,16 +335,31 @@
   });
 
   /* ---------- Menu ---------- */
+  // Menu items that land inside the pinned overview timeline (set up below)
+  const menuSpots = {};
   const menu = document.getElementById('menuDialog');
   const menuOpenBtn = document.getElementById('menuOpenBtn');
   menuOpenBtn.addEventListener('click', () => openDialog(menu));
   document.getElementById('menuCloseBtn').addEventListener('click', () => closeDialog(menu, () => menuOpenBtn.focus()));
+  // The logo closes the menu and returns to the hero
+  document.getElementById('menuHome').addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // the menu fades out over the loader, then the page jumps while covered
+    closeDialog(menu);
+    viaLoader(() => {
+      scrollToEl(0, true);
+      history.replaceState(null, '', '#top');
+    });
+  });
   menu.querySelectorAll('.menu__nav a').forEach((a) => {
     a.addEventListener('click', (e) => {
       e.preventDefault();
-      const target = document.querySelector(a.getAttribute('href'));
-      closeDialog(menu, () => {
-        scrollToEl(target);
+      const spot = a.dataset.spot && (menuSpots[a.dataset.spot] || (window.MJR_SPOTS || {})[a.dataset.spot]);
+      closeDialog(menu);
+      viaLoader(() => {
+        const target = spot ? spot() : document.querySelector(a.getAttribute('href'));
+        scrollToEl(target, true);
         history.replaceState(null, '', a.getAttribute('href'));
       });
     });
@@ -461,6 +544,7 @@
 
       // "INTRODUCING"
       .to(wordInner, { opacity: 1, scale: 1.0, duration: 0.08, ease: 'power2.out' }, 0.58)
+      .addLabel('introducing', 0.66)
 
       // Township card slides up over the word
       .to(card, {
@@ -477,6 +561,9 @@
 
       // Hold before unpinning into #overview
       .to({}, { duration: 0.14 });
+
+    // Menu "Overview" lands on the full "INTRODUCING" frame
+    menuSpots.introducing = () => tl.scrollTrigger.labelToScroll('introducing');
 
     /* ---------- 03 Overview: pinned horizontal scroll ----------
        Copy rises in over Why MJR.svg -> track slides left -> big "Value pillars"
@@ -565,7 +652,7 @@
 
       const explorer = initExplorer({ mplan: mplanEl, mplanImg, stage, card, openBooking, roadX, introY, ROAD_SCALE });
 
-      gsap.timeline({
+      const whyTl = gsap.timeline({
         scrollTrigger: {
           trigger: why,
           start: 'top top',
@@ -654,8 +741,11 @@
           y: 0, rotationX: 0, rotationZ: 0, scale: 1,
           duration: 1.2, ease: 'power2.out',
         }, 'cl')
+        .addLabel('plan')
         // Hold so the visitor can explore before the section unpins
         .to({}, { duration: 4.5 });
+
+      menuSpots.plan = () => whyTl.scrollTrigger.labelToScroll('plan');
     }
 
     window.addEventListener('resize', () => {

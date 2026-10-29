@@ -306,9 +306,13 @@
     },
   });
 
+  // Menu "Amenities" lands once the question and its rule are in place (js/main.js reads this)
+  (window.MJR_SPOTS = window.MJR_SPOTS || {}).amen = () => tl.scrollTrigger.labelToScroll('asked');
+
   // 2. Question slides up into place, then the rule grows down from it
   tl.to(q, { opacity: 1, y: 0, duration: 1, ease: 'power2.out' })
     .to(rule, { scaleY: 1, duration: 1.1, ease: 'power1.inOut' }, '+=0.1')
+    .addLabel('asked')
 
   // 3. One continuous scroll of the column and paper texture up to the heading's resting place; line moves up off the screen
     .to(track, { y: settleY, duration: 3.2, ease: 'none' }, '+=0.2')

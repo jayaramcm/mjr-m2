@@ -10,9 +10,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Marcellus&display=swap" rel="stylesheet">
   <link rel="preload" as="video" href="Assets/hero-day-and-night.mp4" type="video/mp4">
-  <link rel="stylesheet" href="css/styles.css?v=74">
+  <link rel="stylesheet" href="css/styles.css?v=79">
 </head>
 <body class="hero-b">
+  <!-- Preloader: the MJR mark builds itself. Shown on first load and between
+       menu jumps (js/main.js). Navy or ivory, picked with the switch at the bottom right. -->
+  <div class="preloader" id="preloader" role="status" aria-label="Loading">
+    <svg viewBox="92 4 284 350" aria-hidden="true" focusable="false">
+      <polygon class="pl-gold pl-tower pl-t1" points="182.11,61.7 182.11,159.08 212.2,159.08 212.2,43.62"/>
+      <polygon class="pl-gold pl-tower pl-t2" points="230.14,31.9 230.14,159.08 260.23,159.08 260.23,13.82"/>
+      <polygon class="pl-gold pl-tower pl-t3" points="308.26,71.8 308.26,159.08 278.17,159.08 278.17,53.72"/>
+      <path class="pl-ink pl-letter pl-m" d="M156.61,220.91l25.5-45.03h30.09v116.48c0,2.58-2.09,4.67-4.67,4.67h-25.43v-67.89l-25.5,41.78l-25.5-41.78v67.89h-30.09V175.88h30.09L156.61,220.91z"/>
+      <path class="pl-ink pl-letter pl-j" d="M212.2,344.07v-29.53c5.19,0,17.94,1.54,17.94-17.32V175.88h30.09v121.39C260.23,332.31,241.15,344.07,212.2,344.07z"/>
+      <path class="pl-ink pl-letter pl-r" d="M309.92,255.94h-1.65v41.08h-30.09V175.88h39.28c24.68,0,46.23,10.53,46.23,39.15c0,19.66-10.73,31.950-24.27,37.57l28.29,44.42h-34.15L309.92,255.94z M316.09,232.94c9.48,0,16.75-5.27,16.75-15.8c0-10.36-7.27-15.1-16.9-15.1h-7.67v30.9H316.09z"/>
+      <rect class="pl-gold pl-block" x="182.82" y="314.53" width="30.15" height="29.53"/>
+    </svg>
+  </div>
+  <script>
+    // pick the saved loader colour before the first paint
+    try { if (localStorage.getItem('mjrLoader') === 'ivory') document.getElementById('preloader').classList.add('preloader--ivory'); } catch (e) {}
+  </script>
   <a class="skip-link" href="#overview">Skip to content</a>
 
   <!-- 01. Sticky navigation -->
@@ -60,22 +77,22 @@
           <span class="menu__close-x" aria-hidden="true"></span>
           <span>Close</span>
         </button>
-        <span class="menu__brand">MJR Township</span>
       </div>
 
       <nav class="menu__nav" aria-label="Site sections">
         <ol>
-          <li><a href="#overview"><span class="menu__num">01</span>Overview</a></li>
-          <li><a href="#mplan"><span class="menu__num">02</span>Master Plan</a></li>
-          <li><a href="#amenities"><span class="menu__num">03</span>Amenities</a></li>
+          <li><a href="#overview" data-spot="introducing"><span class="menu__num">01</span>Overview</a></li>
+          <li><a href="#mplan" data-spot="plan"><span class="menu__num">02</span>Master Plan</a></li>
+          <li><a href="#amenities" data-spot="amen"><span class="menu__num">03</span>Amenities</a></li>
           <li><a href="#location"><span class="menu__num">04</span>Location</a></li>
-          <li><a href="#mplan"><span class="menu__num">05</span>Plot Options</a></li>
-          <li><a href="#about"><span class="menu__num">06</span>About MJR</a></li>
+          <li><a href="#about" data-spot="about"><span class="menu__num">05</span>About MJR</a></li>
+          <li><a href="#faq"><span class="menu__num">06</span>FAQs</a></li>
           <li><a href="#contact"><span class="menu__num">07</span>Contact</a></li>
         </ol>
       </nav>
 
       <aside class="menu__aside">
+        <a class="menu__home" id="menuHome" href="#top" aria-label="MJR Township, back to the top"><img class="menu__brand" src="Assets/TownShip logo_White.svg" alt="" decoding="async"></a>
         <div class="menu__actions">
           <button class="btn btn--gold" type="button" data-open-booking="visit">Schedule a Site Visit</button>
           <button class="btn btn--line-light" type="button" data-open-booking="brochure">Download Brochure</button>
@@ -957,12 +974,17 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
   <script src="js/plots-data.js?v=4" defer></script>
-  <script src="js/main.js?v=36" defer></script>
-  <script src="js/amenities.js?v=16" defer></script>
+  <script src="js/main.js?v=44" defer></script>
+  <script src="js/amenities.js?v=17" defer></script>
   <script src="js/connectivity.js?v=14" defer></script>
-  <script src="js/about.js?v=21" defer></script>
-  <script src="js/sections.js?v=10" defer></script>
+  <script src="js/about.js?v=23" defer></script>
+  <script src="js/sections.js?v=11" defer></script>
   <!-- Compare: A is the video hero, B the day/night stills -->
+  <!-- Compare: preloader on navy or on ivory (clicking one also previews it) -->
+  <div class="ab-switch ab-switch--loader" role="group" aria-label="Compare preloader colours">
+    <button type="button" data-loader="navy" aria-pressed="true" aria-label="Navy preloader"><span class="ab-swatch ab-swatch--navy"></span></button>
+    <button type="button" data-loader="ivory" aria-pressed="false" aria-label="Ivory preloader"><span class="ab-swatch ab-swatch--ivory"></span></button>
+  </div>
   <div class="ab-switch" role="group" aria-label="Compare hero designs">
     <button type="button" data-ab="a" aria-pressed="false">A</button>
     <button type="button" data-ab="b" aria-pressed="true">B</button>

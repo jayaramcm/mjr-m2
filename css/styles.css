@@ -448,12 +448,20 @@ a {
   transform: rotate(45deg);
 }
 
+/* Logo fills the open space above the CTAs, centred on them */
+.menu__home {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 3vh, 2.5rem) 0;
+}
+
 .menu__brand {
-  font-family: var(--f-display);
-  font-size: 0.95rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--gold-light);
+  display: block;
+  width: clamp(200px, 22vw, 420px);
+  max-height: 100%;
+  height: auto;
 }
 
 .menu__nav {
@@ -536,8 +544,9 @@ a {
 }
 
 .menu__aside {
-  align-self: end;
-  display: grid;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
   gap: 2.5rem;
   opacity: 0;
   transform: translateY(16px);
@@ -845,6 +854,133 @@ body.hero-b .hero__base {
 .ab-switch button[aria-pressed="true"] {
   background: var(--gold);
   color: var(--navy-900);
+}
+
+/* Second compare group sits above the A/B buttons */
+.ab-switch--loader {
+  bottom: calc(1.25rem + 46px);
+}
+
+.ab-swatch {
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: auto;
+  border: 1px solid rgba(245, 241, 232, 0.6);
+}
+
+.ab-swatch--navy { background: var(--navy-900); }
+.ab-swatch--ivory { background: var(--ivory); }
+
+/* ---------- Preloader ----------
+   Towers rise, letters settle, the gold cornerstone drops in, on a shared
+   3.6s loop. Navy by default, .preloader--ivory for the light version. */
+.preloader {
+  --pl-bg: var(--navy-900);
+  --pl-ink: var(--ivory);
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: var(--pl-bg);
+  transition: opacity 0.7s cubic-bezier(0.65, 0, 0.35, 1), visibility 0s linear 0s;
+}
+
+.preloader--ivory {
+  --pl-bg: var(--ivory);
+  --pl-ink: var(--navy-900);
+}
+
+.preloader svg {
+  width: clamp(110px, 24vw, 190px);
+  height: auto;
+  overflow: visible;
+  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.preloader.is-done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.7s cubic-bezier(0.65, 0, 0.35, 1), visibility 0s linear 0.7s;
+}
+
+.preloader.is-done svg { transform: scale(0.92); }
+
+.pl-ink { fill: var(--pl-ink); }
+.pl-gold { fill: var(--gold); }
+
+.pl-tower,
+.pl-letter,
+.pl-block {
+  transform-box: fill-box;
+  animation-duration: 3.6s;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+/* Towers rise from their base, like floors going up */
+.pl-tower {
+  transform-origin: 50% 100%;
+  animation-name: pl-rise;
+}
+
+.pl-t1 { animation-delay: 0s; }
+.pl-t2 { animation-delay: 0.14s; }
+.pl-t3 { animation-delay: 0.28s; }
+
+@keyframes pl-rise {
+  0% { transform: scaleY(0); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  30% { transform: scaleY(1); }
+  78% { transform: scaleY(1); animation-timing-function: cubic-bezier(0.64, 0, 0.78, 0); }
+  94%, 100% { transform: scaleY(0); }
+}
+
+/* Letters settle up into place */
+.pl-letter {
+  transform-origin: 50% 100%;
+  animation-name: pl-settle;
+}
+
+.pl-m { animation-delay: 0.45s; }
+.pl-j { animation-delay: 0.56s; }
+.pl-r { animation-delay: 0.67s; }
+
+@keyframes pl-settle {
+  0% { opacity: 0; transform: translateY(26px); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+  24% { opacity: 1; transform: translateY(0); }
+  70% { opacity: 1; transform: translateY(0); animation-timing-function: cubic-bezier(0.64, 0, 0.78, 0); }
+  84%, 100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* The gold block drops in last, like a cornerstone */
+.pl-block {
+  transform-origin: 50% 50%;
+  animation-name: pl-drop;
+  animation-delay: 0.95s;
+}
+
+@keyframes pl-drop {
+  0% { opacity: 0; transform: rotate(-90deg) scale(0); animation-timing-function: cubic-bezier(0.34, 1.4, 0.64, 1); }
+  18% { opacity: 1; transform: rotate(0) scale(1); }
+  64% { opacity: 1; transform: rotate(0) scale(1); animation-timing-function: cubic-bezier(0.64, 0, 0.78, 0); }
+  76%, 100% { opacity: 0; transform: rotate(45deg) scale(0); }
+}
+
+/* Reduced motion: no movement, just a soft breathing fade */
+@media (prefers-reduced-motion: reduce) {
+  .pl-tower,
+  .pl-letter,
+  .pl-block {
+    animation: pl-breathe 2.4s ease-in-out infinite;
+    animation-delay: 0s;
+  }
+
+  @keyframes pl-breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
 }
 
 /* Shade: a band behind the headline in the sky and a low band behind the facts,
@@ -4498,7 +4634,31 @@ body.is-scrolling .hero__content {
   height: 100vh;
   overflow: hidden;
   padding: calc(var(--bar-h) + 0.5rem) var(--gutter) 0;
-  background: #F5F1E8 url("../Assets/paper-texture.png") center / cover;
+  background: #F5F1E8;
+  position: relative;
+  isolation: isolate;
+}
+
+/* Paper texture on its own layer so it can fade out once the enquiry
+   section scrolls in (js/sections.js toggles .paper-gone) */
+.faq::before,
+.enquire::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url("../Assets/paper-texture.png") center / cover;
+  transition: opacity 2.4s ease;
+}
+
+.enquire::before {
+  background: url("../Assets/paper-texture.png") center top / 100% auto repeat-y;
+}
+
+.paper-gone .faq::before,
+.paper-gone .enquire::before {
+  opacity: 0;
 }
 
 .faq__title {
@@ -4597,7 +4757,8 @@ body.is-scrolling .hero__content {
    (its sky is transparent, so it stands straight on the paper) */
 .enquire {
   padding-top: clamp(4rem, 7vw, 7.5rem);
-  background: #F5F1E8 url("../Assets/paper-texture.png") center top / 100% auto repeat-y;
+  background: #F5F1E8;
+  isolation: isolate;
   overflow: hidden;
 }
 

@@ -172,6 +172,16 @@
     });
   }
 
+  // Paper texture fades away once "A place to build your future." comes into view,
+  // and returns if the visitor scrolls back up above the section
+  const enquire = document.getElementById('contact');
+  if (enquire && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) document.documentElement.classList.add('paper-gone');
+      else if (entry.boundingClientRect.top > 0) document.documentElement.classList.remove('paper-gone');
+    }, { rootMargin: '0px 0px -15% 0px' }).observe(enquire);
+  }
+
   const year = document.getElementById('year');
   if (year) year.textContent = String(new Date().getFullYear());
 })();

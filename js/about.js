@@ -202,6 +202,9 @@
 
   // 2. Pinned sequence
   let built = false;
+  // Menu "About MJR" lands on the full title (js/main.js reads this)
+  (window.MJR_SPOTS = window.MJR_SPOTS || {}).about = () => tl.scrollTrigger.labelToScroll('titled');
+
   const tl = gsap.timeline({
     defaults: { ease: 'power2.inOut' },
     scrollTrigger: {
@@ -216,6 +219,7 @@
   })
     // Title fades in at the centre, 80% to 100% out of a blur, once the stage is in place
     .to(title, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.9, ease: 'power2.out' })
+    .addLabel('titled', '-=0.15')
     .to({}, { duration: 0.3 })
 
     // Title to the top; first sketch slides up into the centre; paper fades in
