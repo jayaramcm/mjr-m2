@@ -5,6 +5,81 @@
   const video = document.getElementById('heroVideo');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+  /* ---------- Nav theme from what sits under the bar ----------
+     No bar: the text and logo take whichever of navy / ivory contrasts with
+     the layer under the bar's centre. A [data-nav] tag wins; a photo or video
+     is judged by the brightness of the strip behind the bar; otherwise a solid
+     background colour by its lightness. */
+  const probe = document.createElement('canvas');
+  probe.width = 32; probe.height = 4;
+  const probeCtx = probe.getContext('2d', { willReadFrequently: true });
+  const mediaLook = (el) => {
+    const r = el.getBoundingClientRect();
+    const w = el.naturalWidth || el.videoWidth, h = el.naturalHeight || el.videoHeight;
+    if (!w || !h || r.height <= 0) return 'navy';
+    // the part of the media under the bar, assuming it fills its box
+    const top = Math.max(0, -r.top) / r.height;
+    const span = Math.min(1 - top, nav.offsetHeight / r.height);
+    try {
+      probeCtx.drawImage(el, 0, top * h, w, Math.max(1, span * h), 0, 0, 32, 4);
+      const d = probeCtx.getImageData(0, 0, 32, 4).data;
+      let sum = 0;
+      for (let i = 0; i < d.length; i += 4) sum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      return sum / (d.length / 4) / 255 > 0.6 ? 'light' : 'navy';
+    } catch (e) {
+      return 'navy'; // unreadable (e.g. opened from disk): ivory text over photos
+    }
+  };
+  const navLook = (el) => {
+    const tagged = el.closest('[data-nav]');
+    if (tagged && tagged.dataset.nav) return tagged.dataset.nav;
+    if (el.tagName === 'IMG' || el.tagName === 'VIDEO') return mediaLook(el);
+    const cs = getComputedStyle(el);
+    const m = cs.backgroundColor.match(/[\d.]+/g);
+    if (m && (m[3] === undefined || +m[3] > 0.5)) {
+      const lum = (0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]) / 255;
+      return lum < 0.4 ? 'navy' : 'light';
+    }
+    if (cs.backgroundImage.startsWith('url(')) return 'image';
+    return null;
+  };
+  const visible = (el) => {
+    let o = 1;
+    for (let n = el; n && n !== document.body; n = n.parentElement) {
+      const cs = getComputedStyle(n);
+      if (cs.visibility === 'hidden' || cs.display === 'none') return false;
+      o *= +cs.opacity;
+      if (o < 0.5) return false;
+    }
+    return true;
+  };
+  const themeNav = () => {
+    const y = nav.offsetHeight / 2;
+    // layers with pointer-events: none still count, so lift that for the probe
+    document.documentElement.classList.add('nav-probe');
+    const stack = document.elementsFromPoint(window.innerWidth / 2, y);
+    document.documentElement.classList.remove('nav-probe');
+    let look = 'light';
+    for (const el of stack) {
+      if (nav.contains(el) || el.classList.contains('ab-switch') || !visible(el)) continue;
+      const l = navLook(el);
+      if (l) { look = l; break; }
+    }
+    nav.classList.toggle('is-inked', look === 'light');
+  };
+  // Scrubbed scenes keep easing for a moment after the scroll stops, so keep
+  // re-checking every 120ms until 1.5s after the last scroll
+  let lastScroll = 0, navLoop = 0;
+  const navPoll = () => {
+    themeNav();
+    navLoop = performance.now() - lastScroll < 1500 ? setTimeout(navPoll, 120) : 0;
+  };
+  const queueNav = () => { lastScroll = performance.now(); if (!navLoop) navLoop = setTimeout(navPoll, 60); };
+  window.addEventListener('scroll', queueNav, { passive: true });
+  window.addEventListener('resize', queueNav);
+  window.addEventListener('load', themeNav);
+  themeNav();
+
   /* ---------- Smooth scroll (Lenis on GSAP's ticker) ----------
      One clock for scroll and animation: Lenis advances on gsap.ticker and
      feeds ScrollTrigger, so scrubbed timelines never drift from the page. */
@@ -149,6 +224,29 @@
   });
   if (reduceMotion.matches) { video.removeAttribute('autoplay'); video.pause(); setPaused(true); }
   else video.play().catch(() => setPaused(true));
+
+  /* ---------- Hero design compare (A: video, B: day/night stills) ---------- */
+  const abButtons = [...document.querySelectorAll('.ab-switch [data-ab]')];
+  const setDesign = (d) => {
+    body.classList.toggle('hero-b', d === 'b');
+    abButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.ab === d)));
+    // the video only runs while design A shows it
+    if (d === 'b') video.pause();
+    else if (toggle.getAttribute('aria-pressed') !== 'true') video.play().catch(() => {});
+    try { localStorage.setItem('mjrHero', d); } catch (e) { /* storage unavailable */ }
+  };
+  abButtons.forEach((b) => b.addEventListener('click', () => setDesign(b.dataset.ab)));
+  let savedDesign = 'b';
+  try { savedDesign = localStorage.getItem('mjrHero') || 'b'; } catch (e) { /* storage unavailable */ }
+  setDesign(savedDesign);
+
+  /* ---------- Day / night stills (design B) ---------- */
+  const dayNight = document.getElementById('heroDayNight');
+  dayNight.addEventListener('click', () => {
+    const night = hero.classList.toggle('is-night');
+    dayNight.setAttribute('aria-pressed', String(night));
+    dayNight.setAttribute('aria-label', night ? 'Show the township by day' : 'Show the township by night');
+  });
 
   /* ---------- Dialog helpers (animated open/close) ---------- */
   const openDialog = (dlg) => {
@@ -334,9 +432,6 @@
         end: 'bottom bottom',
         scrub: 1.0,
         onUpdate: (self) => {
-          // Dark nav text over the ivory sketch, light over the tinted photo
-          const prog = self.progress;
-          nav.classList.toggle('is-inked', (prog >= 0.15 && prog < 0.50) || prog >= 0.999);
           body.classList.add('is-scrolling');
           clearTimeout(scrollTimer);
           scrollTimer = setTimeout(() => body.classList.remove('is-scrolling'), 150);
@@ -474,7 +569,7 @@
         scrollTrigger: {
           trigger: why,
           start: 'top top',
-          end: () => '+=' + window.innerHeight * 14,
+          end: () => '+=' + window.innerHeight * 12.5,
           pin: true,
           scrub: 1,
           invalidateOnRefresh: true,

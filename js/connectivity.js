@@ -60,12 +60,15 @@
   const scene = section.querySelector('.conn__scene');
   const rera = section.querySelector('.conn__rera');
   const folder = section.querySelector('.conn__folder');
+  const reraCopy = section.querySelector('.conn__rera-copy');
   // Outro timing, in screens of scroll after the last chapter
   const HOLD = 0.6; // last frame and its card stay put
   const SLIDE = 1; // scene slides left as the panel slides in
   const ROLL = 0.9; // folder rolls in, starting just before the slide ends
   const ROLL_AT = HOLD + SLIDE - 0.2;
-  const OUTRO = ROLL_AT + ROLL + 0.5; // ends with a short hold on the finished panel
+  const EXIT_AT = ROLL_AT + ROLL + 0.3; // short hold on the finished panel first
+  const EXIT = 0.75; // strip and text slide out left, the folder out right, leaving cream
+  const OUTRO = EXIT_AT + EXIT;
   const slideEase = gsap.parseEase('power2.inOut');
   const rollEase = gsap.parseEase('power3.out');
 
@@ -74,10 +77,12 @@
   const renderOutro = (t) => {
     const w = rera.offsetWidth; // the panel's width is exactly how far the scene moves
     const s = slideEase(gsap.utils.clamp(0, 1, (t - HOLD) / SLIDE));
-    gsap.set(scene, { x: -w * s });
+    const out = slideEase(gsap.utils.clamp(0, 1, (t - EXIT_AT) / EXIT)) * window.innerWidth;
+    gsap.set(scene, { x: -w * s - out });
     gsap.set(rera, { x: w * (1 - s) });
+    gsap.set(reraCopy, { x: -out });
     const r = rollEase(gsap.utils.clamp(0, 1, (t - ROLL_AT) / ROLL));
-    gsap.set(folder, { opacity: 1, x: window.innerWidth * 0.45 * (1 - r), rotation: 38 + (-15 - 38) * r });
+    gsap.set(folder, { opacity: 1, x: window.innerWidth * 0.45 * (1 - r) + out, rotation: 38 + (-15 - 38) * r });
   };
   renderOutro(0);
 
