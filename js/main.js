@@ -130,7 +130,7 @@ if (!reduceMotion) {
   $$('[data-count]').forEach((el) => { show(el, 0); countIO.observe(el); });
 }
 
-/* ---------- S04: the developer card turns to its contact side (hover, or its button for touch and keyboard) ---------- */
+/* ---------- S04: the developer card turns to its contact side via its button ---------- */
 const quoteFlip = $('#quoteFlip');
 const quoteFront = $('.quote-front', quoteFlip);
 const quoteBack = $('#quoteBack');
@@ -144,11 +144,6 @@ function turnQuote(on, moveFocus) {
 }
 quoteTurn.addEventListener('click', () => turnQuote(true, true));
 $('.quote-turn-back', quoteBack).addEventListener('click', () => turnQuote(false, true));
-if (matchMedia('(hover: hover)').matches) {
-  quoteFlip.addEventListener('mouseenter', () => turnQuote(true));
-  // keep it open while a keyboard user is working inside the back
-  quoteFlip.addEventListener('mouseleave', () => { if (!$(':focus-visible', quoteBack)) turnQuote(false); });
-}
 
 /* ---------- S05 Journey: the rail and chapters follow the chapter in the middle of the screen ---------- */
 const chapters = $$('.chapter');
@@ -161,10 +156,17 @@ const chapterIO = new IntersectionObserver((entries) => entries.forEach((e) => {
 }), { rootMargin: '-45% 0px -45% 0px' });
 chapters.forEach((c) => chapterIO.observe(c));
 
-/* ---------- S08 Infrastructure: tabs swap the photo (click, hover on desktop, arrow keys) ---------- */
+/* ---------- S08 Infrastructure: tabs swap the photo (auto-cycles every 2.5s + click/hover/keys) ---------- */
+const infraSection = $('#infrastructure');
 const infraTabs = $$('.infra-tab');
 const infraShots = $$('.infra-shot');
+let infraIndex = 0;
+let infraTimer = null;
+let infraOnScreen = false;
+let infraPaused = false;
+
 function showInfra(i, moveFocus) {
+  infraIndex = i;
   infraTabs.forEach((t, k) => { t.setAttribute('aria-selected', String(k === i)); t.tabIndex = k === i ? 0 : -1; });
   infraShots.forEach((img, k) => img.classList.toggle('is-on', k === i));
   $('#infraPanel').setAttribute('aria-labelledby', infraTabs[i].id);
@@ -173,9 +175,24 @@ function showInfra(i, moveFocus) {
   if (moveFocus) infraTabs[i].focus();
   if (!wide.matches) { const row = infraTabs[i].parentElement; row.scrollTo({ left: infraTabs[i].offsetLeft - (row.clientWidth - infraTabs[i].offsetWidth) / 2, behavior: reduceMotion ? 'auto' : 'smooth' }); } // centre the chip without moving the page
 }
+
+function syncInfraTimer() {
+  clearInterval(infraTimer);
+  if (!reduceMotion && infraOnScreen && !infraPaused) {
+    infraTimer = setInterval(() => {
+      showInfra((infraIndex + 1) % infraTabs.length);
+    }, 2500);
+  }
+}
+
 infraTabs.forEach((tab, i) => {
-  tab.addEventListener('click', () => showInfra(i));
-  if (matchMedia('(hover: hover)').matches) tab.addEventListener('pointerenter', () => showInfra(i));
+  tab.addEventListener('click', () => { showInfra(i); syncInfraTimer(); });
+  if (matchMedia('(hover: hover)').matches) {
+    tab.addEventListener('pointerenter', () => { infraPaused = true; showInfra(i); syncInfraTimer(); });
+    tab.addEventListener('pointerleave', () => { infraPaused = false; syncInfraTimer(); });
+  }
+  tab.addEventListener('focusin', () => { infraPaused = true; syncInfraTimer(); });
+  tab.addEventListener('focusout', () => { infraPaused = false; syncInfraTimer(); });
   tab.addEventListener('keydown', (e) => {
     const n = infraTabs.length;
     const to = { ArrowDown: i + 1, ArrowRight: i + 1, ArrowUp: i - 1, ArrowLeft: i - 1, Home: 0, End: n - 1 }[e.key];
@@ -185,15 +202,27 @@ infraTabs.forEach((tab, i) => {
   });
 });
 
-/* ---------- S03: the sticky caption follows the card in view ---------- */
+if (infraSection) {
+  new IntersectionObserver(([e]) => {
+    infraOnScreen = e.isIntersecting;
+    syncInfraTimer();
+  }, { threshold: 0.2 }).observe(infraSection);
+}
+
+/* ---------- S03: the sticky caption and step index follow the card in view ---------- */
 const cardsNo = $('#cardsNo');
 const cardsCaption = $('#cardsCaption');
+const cardItems = $$('.card-item');
+const cardNavItems = $$('.cards-nav li');
 const cardIO = new IntersectionObserver((entries) => entries.forEach((e) => {
   if (!e.isIntersecting) return;
-  cardsNo.textContent = $$('.card-item').indexOf(e.target) + 1;
-  cardsCaption.textContent = $('.card-cap .h-s', e.target).textContent;
+  const idx = cardItems.indexOf(e.target);
+  if (cardsNo) cardsNo.textContent = idx + 1;
+  if (cardsCaption) cardsCaption.textContent = $('.card-cap .h-s', e.target).textContent;
+  cardItems.forEach((c, j) => c.classList.toggle('is-active', j === idx));
+  cardNavItems.forEach((c, j) => c.classList.toggle('is-active', j === idx));
 }), { rootMargin: '-45% 0px -45% 0px' });
-$$('.card-item').forEach((el) => cardIO.observe(el));
+cardItems.forEach((el) => cardIO.observe(el));
 
 /* ---------- Dialogs: menu and enquiry ---------- */
 const enquiry = $('#enquiry');
