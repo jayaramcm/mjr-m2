@@ -418,6 +418,16 @@ function toggleShortlist(n) {
 }
 renderShortlist();
 
+/* ---------- Mobile Logo Option Toggle (Option A: Right Boxed vs Option B: Center Transparent) ---------- */
+const logoOptBtn = $('#logoOptBtn');
+if (logoOptBtn && banner) {
+  logoOptBtn.addEventListener('click', () => {
+    const next = banner.dataset.mobileLogo === 'a' ? 'b' : 'a';
+    banner.dataset.mobileLogo = next;
+    logoOptBtn.textContent = `Logo: Opt ${next.toUpperCase()}`;
+  });
+}
+
 /* ---------- S07 Master plan ---------- */
 (function initPlan() {
   const data = window.MJR_PLOTS;
@@ -425,6 +435,7 @@ renderShortlist();
 
   const svg = $('#plan');
   const zoom = $('#planZoom');
+  const orientGroup = $('#planOrient');
   const layer = $('#planPlots');
   const select = $('#plotSelect');
   const body = $('#inspectorBody');
@@ -434,6 +445,7 @@ renderShortlist();
   const cta = $('#planCta');
   const filter = { size: 'all', road: 'all' };
   let selected = null;
+  let orient = wide.matches ? 'horizontal' : 'ccw90';
 
   const STATUS = { available: 'Available', sold: 'Sold', reserved: 'Not for sale' };
   const status = (p) => (p.reserved ? 'reserved' : p.sold ? 'sold' : 'available');
@@ -450,6 +462,7 @@ renderShortlist();
   // Draw every plot as its traced outline, coloured by status
   const NS = 'http://www.w3.org/2000/svg';
   const nodes = {};
+  const labels = {};
   data.list.forEach((p) => {
     const g = document.createElementNS(NS, 'g');
     g.setAttribute('class', `plot is-${status(p)}`);
@@ -465,6 +478,30 @@ renderShortlist();
     if (!p.reserved) g.addEventListener('click', () => choose(p.n === selected ? null : p.n));
     layer.append(g);
     nodes[p.n] = g;
+    labels[p.n] = label;
+  });
+
+  function applyOrient(mode) {
+    orient = mode;
+    const isCCW = mode === 'ccw90';
+    svg.setAttribute('viewBox', isCCW ? '0 0 1080 2160' : '190 300 2160 1080');
+    svg.classList.toggle('is-ccw90', isCCW);
+    if (orientGroup) {
+      orientGroup.setAttribute('transform', isCCW ? 'translate(-300, 2350) rotate(-90)' : '');
+    }
+    data.list.forEach((p) => {
+      if (labels[p.n]) {
+        labels[p.n].setAttribute('transform', isCCW ? `rotate(90, ${p.x}, ${p.y})` : '');
+      }
+    });
+    $$('[data-plan-orient]').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(btn.dataset.planOrient === mode));
+    });
+    choose(selected);
+  }
+
+  $$('[data-plan-orient]').forEach((btn) => {
+    btn.addEventListener('click', () => applyOrient(btn.dataset.planOrient));
   });
 
   svg.addEventListener('click', (e) => { if (!e.target.closest('.plot')) choose(null); });
@@ -477,18 +514,15 @@ renderShortlist();
     heart.setAttribute('aria-pressed', String(shortlist.includes(Number(heart.dataset.plot))));
   });
 
-  $$('#plots .chip').forEach((chip) => chip.addEventListener('click', () => {
+  $$('.planner-filters .chip').forEach((chip) => chip.addEventListener('click', () => {
     const key = chip.dataset.size ? 'size' : 'road';
     filter[key] = chip.dataset[key];
-    $$(`#plots [data-${key}]`).forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+    $$(`.planner-filters [data-${key}]`).forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
     renderFilters();
     render();
   }));
 
   $('#planNote').textContent = `Availability updated ${data.asOf}. Plot sizes, facing and availability are indicative until our sales team confirms them.`;
-  if (scroller.scrollWidth > scroller.clientWidth) {
-    scroller.insertAdjacentHTML('afterend', '<p class="label plan-hint">Drag the plan sideways to see every plot.</p>');
-  }
 
   function choose(n) {
     selected = n;
@@ -498,7 +532,9 @@ renderShortlist();
       const s = 2.4;
       const cx = vb.x + vb.width / 2;
       const cy = vb.y + vb.height / 2;
-      zoom.style.transform = `translate(${cx - p.x * s}px, ${cy - p.y * s}px) scale(${s})`;
+      const px = orient === 'ccw90' ? (p.y - 300) : p.x;
+      const py = orient === 'ccw90' ? (2350 - p.x) : p.y;
+      zoom.style.transform = `translate(${cx - px * s}px, ${cy - py * s}px) scale(${s})`;
       scroller.scrollLeft = (scroller.scrollWidth - scroller.clientWidth) / 2;
     } else {
       zoom.style.transform = '';
@@ -564,7 +600,8 @@ renderShortlist();
   }
 
   renderFilters();
-  render();
+  applyOrient(orient);
+  wide.addEventListener('change', (e) => applyOrient(e.matches ? 'horizontal' : 'ccw90'));
 })();
 
 /* ---------- S12 FAQ: the side image follows the open question ---------- */

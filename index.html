@@ -113,12 +113,25 @@
 
   <!-- S00 · Header -->
   <div class="progress" aria-hidden="true"><span></span></div>
-  <header class="banner" id="banner">
+  <header class="banner" id="banner" data-mobile-logo="a">
     <button type="button" class="pill" id="menuOpen" aria-haspopup="dialog" aria-label="Open menu"><svg class="icon">
         <use href="#i-menu" />
       </svg><span class="pill-text">Menu</span></button>
+    <button type="button" class="pill mobile-logo-toggle" id="logoOptBtn" aria-label="Switch mobile logo style">Logo: Opt A</button>
     <a href="#top" class="brand" aria-label="MJR Township, back to top">
-      <img src="Assets/MJR Infra Developers_Logo_Web_Web.svg" alt="" width="469" height="358">
+      <svg class="brand-svg" viewBox="95 10 278 340" aria-hidden="true">
+        <g class="brand-gold">
+          <rect x="182.82" y="314.53" width="30.15" height="29.53"/>
+          <polygon points="182.11,61.7 182.11,159.08 212.2,159.08 212.2,43.62"/>
+          <polygon points="230.14,31.9 230.14,159.08 260.23,159.08 260.23,13.82"/>
+          <polygon points="308.26,71.8 308.26,159.08 278.17,159.08 278.17,53.72"/>
+        </g>
+        <g class="brand-word">
+          <path d="M212.2,344.07v-29.53c5.19,0,17.94,1.54,17.94-17.32V175.88h30.09v121.39C260.23,332.31,241.15,344.07,212.2,344.07z"/>
+          <path d="M309.92,255.94h-1.65v41.08h-30.09V175.88h39.28c24.68,0,46.23,10.53,46.23,39.15c0,19.66-10.73,31.95-24.27,37.57l28.29,44.42h-34.15L309.92,255.94z M316.09,232.94c9.48,0,16.75-5.27,16.75-15.8c0-10.36-7.27-15.1-16.9-15.1h-7.67v30.9H316.09z"/>
+          <path d="M156.61,220.91l25.5-45.03h30.09v116.48c0,2.58-2.09,4.67-4.67,4.67h-25.43v-67.89l-25.5,41.78l-25.5-41.78v67.89h-30.09V175.88h30.09L156.61,220.91z"/>
+        </g>
+      </svg>
     </a>
     <div class="banner-right">
       <button type="button" class="pill" data-enquiry="visit" aria-label="Book a site visit"><svg class="icon">
@@ -538,7 +551,14 @@
           <output class="match-count" id="matchCount" aria-live="polite"></output>
         </div>
 
-        <div class="planner-stage">
+        <div class="planner-stage" id="plannerStage">
+          <div class="plan-orient-bar" id="planOrientBar" role="group" aria-label="Layout orientation options">
+            <span class="label">Layout view:</span>
+            <div class="chips">
+              <button type="button" class="chip" data-plan-orient="ccw90" aria-pressed="true">Option 1 · 90° Vertical</button>
+              <button type="button" class="chip" data-plan-orient="horizontal" aria-pressed="false">Option 2 · Horizontal</button>
+            </div>
+          </div>
           <div class="plan-scroll" id="planScroll">
             <svg class="plan" id="plan" viewBox="190 300 2160 1080" role="img"
             aria-label="Master plan with 104 plots. Use the plot list to choose a plot with the keyboard.">
@@ -549,8 +569,10 @@
               </pattern>
             </defs>
             <g id="planZoom">
-              <image href="Assets/web/layout-plan.webp" width="2560" height="1440" class="plan-image" />
-              <g id="planPlots"></g>
+              <g id="planOrient">
+                <image href="Assets/web/layout-plan.webp" width="2560" height="1440" class="plan-image" />
+                <g id="planPlots"></g>
+              </g>
             </g>
           </svg>
           </div>
