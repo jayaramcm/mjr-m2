@@ -114,17 +114,16 @@
   <!-- S00 · Header -->
   <div class="progress" aria-hidden="true"><span></span></div>
   <header class="banner" id="banner">
-    <button type="button" class="pill" data-enquiry="visit" aria-label="Book a site visit"><svg class="icon">
-        <use href="#i-chat" />
-      </svg><span class="pill-text">Book a site visit</span></button>
+    <button type="button" class="pill" id="menuOpen" aria-haspopup="dialog" aria-label="Open menu"><svg class="icon">
+        <use href="#i-menu" />
+      </svg><span class="pill-text">Menu</span></button>
     <a href="#top" class="brand" aria-label="MJR Township, back to top">
       <img src="Assets/MJR Infra Developers_Logo_Web_Web.svg" alt="" width="469" height="358">
     </a>
     <div class="banner-right">
-      <button type="button" class="pill" id="menuOpen" aria-haspopup="dialog" aria-label="Open menu"><span
-          class="pill-text">Menu</span><svg class="icon">
-          <use href="#i-menu" />
-        </svg></button>
+      <button type="button" class="pill" data-enquiry="visit" aria-label="Book a site visit"><svg class="icon">
+          <use href="#i-chat" />
+        </svg><span class="pill-text">Book a site visit</span></button>
     </div>
   </header>
 
@@ -428,11 +427,11 @@
 
           <figure class="loc-map">
             <!-- shortcut: the site pin is an approximate point on NH 167K about 3 km from Kalwakurthy; replace SITE in redesign/tools/build-location-map.cjs with the surveyed lat/long and rebuild -->
-            <svg viewBox="0 0 600 700" role="img" aria-labelledby="locMapTitle">
+            <svg viewBox="0 30 600 470" preserveAspectRatio="xMidYMin slice" role="img" aria-labelledby="locMapTitle">
               <title id="locMapTitle">Map of the area: MJR Township on NH 167K near Kalwakurthy, with the driving route north along the Srisailam highway to Hyderabad's Outer Ring Road and the airport, and Jadcherla, Nagarkurnool and Srisailam nearby</title>
               <defs>
                 <radialGradient id="cityGlow"><stop offset="0" stop-color="var(--brand-cream)" stop-opacity=".95"/><stop offset="1" stop-color="var(--brand-cream)" stop-opacity="0"/></radialGradient>
-                <clipPath id="calloutClip"><rect x="334" y="448.8" width="58" height="48" rx="6"/></clipPath>
+                <clipPath id="calloutClip"><rect x="340" y="402.8" width="58" height="48" rx="6"/></clipPath>
                 <filter id="calloutShadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="var(--brand-black)" flood-opacity=".18"/></filter>
               </defs>
               <g class="map-cam">
@@ -443,7 +442,7 @@
                 <g class="m-pin pin-hyd"><circle class="m-dot" cx="319.5" cy="112.4" r="5.5"/><text class="m-label m-big" x="353.5" y="102.4">Hyderabad</text><text class="m-label m-sub" x="353.5" y="119.4">Outer Ring Road</text></g>
                 <g class="m-pin pin-air"><circle class="m-dot" cx="296.2" cy="173.8" r="4.5"/><text class="m-label" x="284.2" y="177.8" text-anchor="end">RGI Airport</text></g>
                 <g class="m-pin pin-jad"><circle class="m-dot" cx="177.5" cy="376.3" r="4.5"/><text class="m-label" x="177.5" y="364.3" text-anchor="middle">Jadcherla</text></g>
-                <g class="m-pin pin-ngk"><circle class="m-dot" cx="253.7" cy="495.5" r="4.5"/><text class="m-label" x="241.7" y="499.5" text-anchor="end">Nagarkurnool</text></g>
+                <g class="m-pin pin-ngk"><circle class="m-dot" cx="253.7" cy="468.5" r="4.5"/><text class="m-label" x="241.7" y="472.5" text-anchor="end">Nagarkurnool</text></g>
                 <g class="m-pin pin-srs"><circle class="m-dot" cx="474.6" cy="668.9" r="4.5"/><text class="m-label" x="462.6" y="672.9" text-anchor="end">Srisailam</text></g>
                 <g class="m-pin pin-aml"><circle class="m-dot is-small" cx="337.1" cy="339.4" r="3.5"/><text class="m-label m-sub" x="349.1" y="343.4">Amangal</text></g>
                 <g class="m-pin pin-town"><circle class="m-dot" cx="319.2" cy="423.4" r="5.5"/><text class="m-label m-big" x="293.2" y="417.4" text-anchor="end">Kalwakurthy</text></g>
@@ -452,16 +451,25 @@
                   <path class="m-site" d="M312 432.8c-8-10-12.5-16-12.5-22.5a12.5 12.5 0 0 1 25 0c0 6.5-4.5 12.5-12.5 22.5Z"/>
                   <circle cx="312" cy="410.3" r="4" fill="var(--brand-white)"/>
                   <g class="m-callout" filter="url(#calloutShadow)">
-                    <path class="m-callout-tail" d="M314 434.8L342 444.8L358 444.8Z"/>
-                    <rect class="m-callout-card" x="328" y="442.8" width="214" height="60" rx="10"/>
-                    <image href="Assets/web/location-01-site.webp" x="334" y="448.8" width="58" height="48" preserveAspectRatio="xMidYMid slice" clip-path="url(#calloutClip)"/>
-                    <text class="m-callout-title" x="404" y="469.8">MJR Township</text>
-                    <text class="m-callout-sub" x="404" y="487.8">NH 167K · Kalwakurthy</text>
+                    <path class="m-callout-tail" d="M322 422.8L336 416.8L336 430.8Z"/>
+                    <rect class="m-callout-card" x="334" y="396.8" width="214" height="60" rx="10"/>
+                    <image href="Assets/web/location-01-site.webp" x="340" y="402.8" width="58" height="48" preserveAspectRatio="xMidYMid slice" clip-path="url(#calloutClip)"/>
+                    <text class="m-callout-title" x="410" y="423.8">MJR Township</text>
+                    <text class="m-callout-sub" x="410" y="441.8">NH 167K · Kalwakurthy</text>
                   </g>
                 </g>
                 <circle class="m-car" cx="312" cy="432.8" r="6"/>
               </g>
-              <g class="m-compass" transform="translate(556 52)"><circle r="20"/><path d="M0-13 5 4 0 1-5 4Z"/><text y="-25" text-anchor="middle">N</text></g>
+              <g class="m-compass" transform="translate(558 118)">
+                <circle r="14.5"/>
+                <circle class="c-ring" r="11.5"/>
+                <path class="c-ticks" d="M0-14.5v2.5M0 12v2.5M-14.5 0h2.5M12 0h2.5"/>
+                <polygon class="c-eastwest" points="-10,0 0,-2.2 10,0 0,2.2"/>
+                <polygon class="c-south" points="0,10.5 -2.6,0 2.6,0"/>
+                <polygon class="c-north" points="0,-10.5 2.6,0 -2.6,0"/>
+                <circle class="c-pivot" r="1.4"/>
+                <text y="-18" text-anchor="middle">N</text>
+              </g>
             </svg>
             <figcaption class="loc-legend"><span><i class="lg-site"></i>MJR Township</span><span><i class="lg-route"></i>Route to Hyderabad</span><span class="lg-note">Site position approximate · Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</span></figcaption>
           </figure>
